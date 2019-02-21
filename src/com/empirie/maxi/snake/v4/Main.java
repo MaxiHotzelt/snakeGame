@@ -1,17 +1,19 @@
-package com.empirie.maxi.snake.v2;
+package com.empirie.maxi.snake.v4;
 
+import java.awt.BorderLayout;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 
 import javax.swing.JFrame;
-
+import javax.swing.SwingUtilities;
 
 @SuppressWarnings("serial")
 public class Main extends JFrame  {
 
 	private Board board;
+	private GameInfo options;
 	
 	public Main() {
 		init();
@@ -20,7 +22,8 @@ public class Main extends JFrame  {
 	}
 	
 	public void init() {
-		board = new Board();
+		options = new GameInfo();
+		board = new Board(options);
 		
 		//Center frame
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -34,29 +37,23 @@ public class Main extends JFrame  {
 	public void config() {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		getContentPane();
+		
+		setLayout(new BorderLayout());
 			
-		add(board);
+		add(board, BorderLayout.CENTER);
+		pack();
+		add(options, BorderLayout.LINE_END);
 		pack();
 	}
 	
-	public void start() {
-		while(true) {
-			try {
-				Thread.sleep(300);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+	public static void main(String[] args) {		
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				Main game = new Main();
+				game.setVisible(true);
 			}
 			
-			board.update();
-		}
-	}
-	
-
-	
-	public static void main(String[] args) {
-		Main game = new Main();
-		game.setVisible(true);
-		game.start();
+		});
 	}
 	
 }

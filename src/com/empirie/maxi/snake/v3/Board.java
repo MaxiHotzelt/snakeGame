@@ -1,46 +1,48 @@
-package com.empirie.maxi.snake.v2;
+package com.empirie.maxi.snake.v3;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Random;
 
 import javax.swing.JPanel;
 
-import com.empirie.maxi.snake.v1.model.Bodypart;
-import com.empirie.maxi.snake.v1.model.Direction;
-
 @SuppressWarnings("serial")
 public class Board extends JPanel {
 	
 	private Snake snake = new Snake();
-	private Food food = new Food(1,1);
+	private Food food = new Food();
 	
 	public Board() {
+		
+		
 		addKeyListener(new KYListener());
 		setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		setFocusable(true);
 		requestFocusInWindow();
+		
+		relocateFood();
 	}
 	
-
-	private final int ROWS = 10;
-	private final int COLUMNS = 10;
+	private final int ROWS = 20;
+	private final int COLUMNS = 20;
 	
-	private final int FIELDWIDTH = 50;
-	private final int FIELDHEIGHT = 50;
+	private final int FIELDWIDTH = 40;
+	private final int FIELDHEIGHT = 40;
 	
 	private final int HEIGHT = ROWS * FIELDHEIGHT;
 	private final int WIDTH = COLUMNS * FIELDWIDTH;
 	
+	
+	//getter
 	public int getRows() { return ROWS; }
 	public int getColumns() { return COLUMNS; }
-	
 	public int getFieldwidth() { return FIELDWIDTH; }
 	public int getFieldheight() { return FIELDHEIGHT; }	
-	
 	public int getHeight() { return HEIGHT; }
 	public int getWidth() { return WIDTH; }
 	
@@ -49,14 +51,17 @@ public class Board extends JPanel {
 	public void paintComponent(Graphics g) {
 		
 		super.paintComponent(g);
+		Graphics2D g2d = (Graphics2D) g;
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
 		
 		//draw food
 		g.setColor(Color.ORANGE);
-		g.fillRect(food.getPosX() * FIELDWIDTH+1, food.getPosY() * FIELDHEIGHT+1, FIELDWIDTH-1, FIELDHEIGHT-1);
+		g.fillOval(food.getPosX() * FIELDWIDTH, food.getPosY() * FIELDHEIGHT, FIELDWIDTH, FIELDHEIGHT);
 		
 		
 		//draw board
-		g.setColor(Color.BLUE);
+		g.setColor(Color.lightGray);
 		for(int i = 0; i < ROWS; i++) {
 			for(int j = 0; j < COLUMNS; j++) {
 				g.drawRect(j * FIELDWIDTH, i * FIELDHEIGHT, FIELDWIDTH, FIELDHEIGHT);
@@ -64,9 +69,11 @@ public class Board extends JPanel {
 		}
 		
 		//draw snake
+		boolean firstPart = true;
 		for(SnakeBodyPart part : snake.getSnakePartList()) {
-			if(part.getBodypart() == Bodypart.HEAD) {
+			if(firstPart) {
 				g.setColor(Color.RED);	
+				firstPart = false;
 			} else {
 				g.setColor(Color.GREEN);
 			}
@@ -76,43 +83,81 @@ public class Board extends JPanel {
 		
 	}
 	
+	/**
+	 * Updates the board -> moves snake, relocates food and repaints everything
+	 */
 	public void update() {
-		//change position of snake
-		snake.move();
 		
-		//check if snakeHead is on food field
-		if(isFoodCollision()) {
-			setFoodToEmptyField();
-			snake.addSnakePart();
+		if(isWallCollision()) {
+			return;
+		}
+		if(isSelfCollision()) {
+			return;
 		}
 		
+		
+		snake.move();
+		if(isFoodCollision()) {
+			snake.eat();
+			relocateFood();
+		}
 		
 		repaint();
 	}
 	
-	public void setFoodToEmptyField() {
-		boolean searchingField = true;
-		int foodY = 0;
-		int foodX = 0;
+	public void relocateFood() {
+		boolean suchePos = true;
+		int foodY = 0, foodX = 0;
 		Random ran = new Random();
 		
-		while(searchingField) {
-
+		while(suchePos) {
 			foodY = ran.nextInt(ROWS);
 			foodX = ran.nextInt(COLUMNS);
 			for(SnakeBodyPart part : snake.getSnakePartList()) {
 				if(part.getPosX() == foodX && part.getPosY() == foodY) {
-					searchingField = true;
-					return;
+					suchePos = true;
+					break;
 				} else {
-					searchingField = false;
+					suchePos = false;
 				}
 			}
-		}
-		ran = null;
+		}			
 		food.relocate(foodX, foodY);
 	}
 	
+	public boolean isSelfCollision() {
+		SnakeBodyPart head = snake.getSnakePartList().get(0);
+		
+		boolean isHead = true;
+		boolean isCollision = false;
+		for(SnakeBodyPart part : snake.getSnakePartList()) {
+			if(isHead) {
+				isHead = false;
+			} else {
+				if(head.getPosX() == part.getPosX() && head.getPosY() == part.getPosY()) {
+					isCollision = true;
+					break;
+				}
+			}
+		}
+		return isCollision;
+	}
+	
+	public boolean isWallCollision() {
+		SnakeBodyPart head = snake.getSnakePartList().get(0);
+	
+		if(	head.getPosY() + snake.getYSpeed() < 0 || head.getPosY() + snake.getYSpeed() > ROWS-1 ||
+			head.getPosX() + snake.getXSpeed() < 0 || head.getPosX() + snake.getXSpeed() > COLUMNS-1	
+		) {
+			return true;
+		} else { return false; }
+		
+	}
+	
+	
+	/**
+	 * @return boolean - returns true, if the head of the snake is on the location of the food, otherwise returns false
+	 */
 	public boolean isFoodCollision() {
 		SnakeBodyPart head = snake.getSnakePartList().get(0);
 		
@@ -124,8 +169,9 @@ public class Board extends JPanel {
 	}
 	
 	
+	
+	
 	/**
-	 * 
 	 *  @author hotzelm
 	 *	KeyListeners to change the direction if the snake head
 	 */
@@ -139,16 +185,24 @@ public class Board extends JPanel {
 		@Override
 		public void keyReleased(KeyEvent e) {
 			if(e.getKeyCode() == KeyEvent.VK_UP) {
-				snake.getSnakePartList().get(0).setCurrentDir(Direction.UP);
+				if(snake.getXSpeed() == 0 && snake.getYSpeed() == 1) return;
+				snake.setXSpeed(0);
+				snake.setYSpeed(-1);
 			} 
 			if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-				snake.getSnakePartList().get(0).setCurrentDir(Direction.DOWN);
+				if(snake.getXSpeed() == 0 && snake.getYSpeed() == -1) return;
+				snake.setXSpeed(0);
+				snake.setYSpeed(1);
 			} 
 			if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-				snake.getSnakePartList().get(0).setCurrentDir(Direction.LEFT);
+				if(snake.getXSpeed() == 1 && snake.getYSpeed() == 0) return;
+				snake.setXSpeed(-1);
+				snake.setYSpeed(0);
 			} 
 			if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-				snake.getSnakePartList().get(0).setCurrentDir(Direction.RIGHT);
+				if(snake.getXSpeed() == -1 && snake.getYSpeed() == 0) return;
+				snake.setXSpeed(1);
+				snake.setYSpeed(0);
 			} 
 			
 			
@@ -164,3 +218,4 @@ public class Board extends JPanel {
 	
 	
 }
+

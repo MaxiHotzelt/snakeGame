@@ -1,4 +1,4 @@
-package com.empirie.maxi.snake.v2;
+package com.empirie.maxi.snake.v3;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -42,7 +42,7 @@ public class Main extends JFrame  {
 	public void start() {
 		while(true) {
 			try {
-				Thread.sleep(300);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -51,7 +51,6 @@ public class Main extends JFrame  {
 		}
 	}
 	
-
 	
 	public static void main(String[] args) {
 		Main game = new Main();

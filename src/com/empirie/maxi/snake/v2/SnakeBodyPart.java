@@ -21,6 +21,10 @@ public class SnakeBodyPart {
 		return part;
 	}
 	
+	public void setBodypart(Bodypart part) {
+		this.part = part;
+	}
+	
 	public int getPosX() {
 		return posX;
 	}
