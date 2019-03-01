@@ -1,4 +1,4 @@
-package com.empirie.maxi.snake.v4;
+package com.empirie.maxi.snake.v5Deprecated;
 
 public enum Difficulty {
 		

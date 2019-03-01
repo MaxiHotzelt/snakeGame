@@ -1,4 +1,4 @@
-package com.empirie.maxi.snake.v4;
+package com.empirie.maxi.snake.v5Deprecated;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -6,8 +6,9 @@ import java.util.ArrayList;
 
 
 public class Snake {
-	//needs to board to get the rows and columns for the transition, when wall collision is deactivated and the snake hits a wall
-	private Board board;
+	//needs game for settings and board info to get the rows and columns for the transition,
+	//when wall collision is deactivated and the snake hits a wall
+	private Game game;
 	
 	private int xspeed = 0;
 	private int yspeed = 1;
@@ -22,8 +23,8 @@ public class Snake {
 	public void setYSpeed(int yspeed) { this.yspeed = yspeed; }
 	
 	
-	public Snake(Board board) {
-		this.board = board;
+	public Snake(Game game) {
+		this.game = game;
 		init();
 	}		
 	
@@ -61,15 +62,15 @@ public class Snake {
 		    	//sets the head of the snake to new position
 		    	
 		    	//checks if snake head translates to the other side of the map
-		    	if(!board.getSettings().getIsBorderCollisionActive() && board.isWallCollision()) {
+		    	if(game.getSettings().getIsDefaultBorderCollisionActive() && game.getBoard().isWallCollision()) {
 		    		if(xspeed == 1) {
 		    			part.setPosX(0);
 		    		} else if(xspeed == -1) {
-		    			part.setPosX(board.getColumns()-1);
+		    			part.setPosX(game.getBoard().getColumns()-1);
 		    		} else if(yspeed == 1) {
 		    			part.setPosY(0);
 		    		} else {
-		    			part.setPosY(board.getRows()-1);
+		    			part.setPosY(game.getBoard().getRows()-1);
 		    		}
 		    	} else {
 			    	part.setPosX(snakeList.get(0).getPosX() + xspeed);	

@@ -1,39 +1,30 @@
-package com.empirie.maxi.snake.v4;
+package com.empirie.maxi.snake.v5Deprecated;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.image.ImageObserver;
 import java.util.Random;
 
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-import com.empirie.maxi.snake.v4.Menu.Button;
-
 @SuppressWarnings("serial")
 public class Board extends JPanel{
 	
 	//objects placed on the board
-	private Snake snake = new Snake(this);
+	private Snake snake;
 	private Food food = new Food();
 	//objects needed
 	private Timer timer;
-	private GameInfo options;
-	private Menu menu;
 	private Highscores highscores;
-	private Settings settings;
+	public Game game;
 	
-	private Gamestate gamestate;
 	
 	//settings of the field/board
 	private final int ROWS = 20;
@@ -50,18 +41,27 @@ public class Board extends JPanel{
 	private final int DEFAULTSPEED = 100;
 	
 	private int buttonsPressed = 0;
+	private int score = 0;
 	
-	public Board(GameInfo options) {
+	//getter
+	public int getRows() { return ROWS; }
+	public int getColumns() { return COLUMNS; }
+	public int getFieldwidth() { return FIELDWIDTH; }
+	public int getFieldheight() { return FIELDHEIGHT; }	
+	public int getHeight() { return HEIGHT; }
+	public int getWidth() { return WIDTH; }
+	public int getUpdateSpeed() { return updateSpeed; }
+	public int getScore() { return this.score; }
+	
 		
-		this.options = options;
-		this.gamestate = Gamestate.MENU;
-		this.menu = new Menu(this.WIDTH, this.HEIGHT);
+	public Board(Game game) {
+		
+		this.game = game;
 		this.highscores = new Highscores();
-		this.settings = new Settings();
+		this.snake = new Snake(game);
 		
 		
 		addKeyListener(new KYListener());
-		addMouseListener(new MSListener());
 		
 		setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		setFocusable(true);
@@ -78,88 +78,20 @@ public class Board extends JPanel{
 			}
 		});
 	}
-	
-	//getter
-	public int getRows() { return ROWS; }
-	public int getColumns() { return COLUMNS; }
-	public int getFieldwidth() { return FIELDWIDTH; }
-	public int getFieldheight() { return FIELDHEIGHT; }	
-	public int getHeight() { return HEIGHT; }
-	public int getWidth() { return WIDTH; }
-	public int getUpdateSpeed() { return updateSpeed; }
-	public Settings getSettings() { return this.settings; }
-	
-	
-	@Override
-	public void paintComponent(Graphics g) {
 		
-		super.paintComponent(g);
-		Graphics2D g2d = (Graphics2D) g;
-		//activates antialiasing
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-		
-		//paint menu, game, highscore or settings
-		if(gamestate == Gamestate.GAME) {
-			timer.start();
-			//draw food
-			food.render(g2d, FIELDWIDTH, FIELDHEIGHT);
-			//draw board
-			this.render(g2d);
-			//draw snake
-			snake.render(g2d, FIELDWIDTH, FIELDHEIGHT);
-		} else if(gamestate == Gamestate.MENU) {
-			//draw menu
-			menu.render(g2d, WIDTH, HEIGHT);
-		} else if(gamestate == Gamestate.HIGHSCORES) {
-			highscores.render(g2d);
-		}
-		
-		
-	}
-	
-	public void increaseUpdatespeed(int value) { 
-		this.updateSpeed -= value;
-		timer.setDelay(updateSpeed); 
-	}
-	
-	public void render(Graphics g) {
-		g.setColor(Color.lightGray);
-		for(int i = 0; i < ROWS; i++) {
-			for(int j = 0; j < COLUMNS; j++) {
-				g.drawRect(j * FIELDWIDTH, i * FIELDHEIGHT, FIELDWIDTH, FIELDHEIGHT);
-			}
-		}
-	}
-	
-	public void resetBoard() {
-		resetSpeed();
-		
-		highscores.addScore(options.getScore());
-		timer.stop();
-		snake.getSnakePartList().clear();
-		snake.init();
-		relocateFood();
-	}
-	
-	public void resetSpeed() {
-		this.updateSpeed = DEFAULTSPEED;
-		timer.setDelay(updateSpeed);
-	}
-	
 	/**
 	 * Updates the board -> moves snake, relocates food and repaints everything.
 	 */
 	public void update() {
 		
-		if(settings.getIsBorderCollisionActive()) {
+		if(game.getSettings().getIsBorderCollisionActive()) {
 			if(isWallCollision()) {
-				gamestate = Gamestate.MENU;
+				game.changePanel(Gamestate.MENU);
 				resetBoard();
 			}
 		}
 		if(isSelfCollision()) {
-			gamestate = Gamestate.MENU;
+			game.changePanel(Gamestate.MENU);
 			resetBoard();
 		}
 		
@@ -169,9 +101,9 @@ public class Board extends JPanel{
 			snake.eat();
 			relocateFood();
 			
-			options.addPoint();
+			score++;
 			
-			if(options.getScore() % 10 == 0) {
+			if(score % 10 == 0) {
 				increaseUpdatespeed(10);
 				
 				System.out.println(this.updateSpeed);
@@ -181,6 +113,34 @@ public class Board extends JPanel{
 		
 		buttonsPressed = 0;
 		repaint();
+	}	
+	
+	private void increaseUpdatespeed(int value) { 
+		this.updateSpeed -= value;
+		timer.setDelay(updateSpeed); 
+	}
+	
+	private void resetBoard() {
+		resetSpeed();
+		
+		//resets score
+		highscores.addScore(score);
+		score = 0;
+		
+		
+		timer.stop();
+		
+		//resets snake
+		snake.getSnakePartList().clear();
+		snake.init();
+		
+		//resets food
+		relocateFood();
+	}
+	
+	private void resetSpeed() {
+		this.updateSpeed = DEFAULTSPEED;
+		timer.setDelay(updateSpeed);
 	}
 	
 	public void relocateFood() {
@@ -203,6 +163,36 @@ public class Board extends JPanel{
 		food.relocate(foodX, foodY);
 	}
 	
+	
+	
+	@Override
+	public void paintComponent(Graphics g) {
+		
+		super.paintComponent(g);
+		Graphics2D g2d = (Graphics2D) g;
+		//activates antialiasing
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+	
+		timer.start();
+		//draw food
+		food.render(g2d, FIELDWIDTH, FIELDHEIGHT);
+		//draw board
+		this.render(g2d);
+		//draw snake
+		snake.render(g2d, FIELDWIDTH, FIELDHEIGHT);
+		
+		
+	}
+	
+	public void render(Graphics g) {
+		g.setColor(Color.lightGray);
+		for(int i = 0; i < ROWS; i++) {
+			for(int j = 0; j < COLUMNS; j++) {
+				g.drawRect(j * FIELDWIDTH, i * FIELDHEIGHT, FIELDWIDTH, FIELDHEIGHT);
+			}
+		}
+	}
 	
 	/**
 	 * Checks if the snake head is colliding with its body.
@@ -258,9 +248,10 @@ public class Board extends JPanel{
 	
 	
 	
+	
 	/**
 	 *  @author hotzelm
-	 *	KeyListeners to change the direction if the snake on keyboard input
+	 *	KeyListeners to change the direction if the snake on keyboard input or to pause the game
 	 */
 	private class KYListener extends KeyAdapter {
 		private boolean gamePaused = false;
@@ -274,6 +265,7 @@ public class Board extends JPanel{
 		//changes the x- and y-speed of the snake, which is responsible for the direction the snake is moving
 		@Override
 		public void keyReleased(KeyEvent e) {
+			
 			if(buttonsPressed == 0) {
 				if(e.getKeyCode() == KeyEvent.VK_UP) {
 					if(snake.getXSpeed() == 0 && snake.getYSpeed() == 1) return;
@@ -295,19 +287,24 @@ public class Board extends JPanel{
 					snake.setXSpeed(1);
 					snake.setYSpeed(0);
 				} 
-				if(e.getKeyCode() == 80) {
-					if(gamePaused) {
-						gamePaused = false;
-						timer.start();
-					} else {
-						gamePaused = true;
-						timer.stop();
-					}
-					
-				} 
+				
+				
+				buttonsPressed++;
 			}
 			
-			buttonsPressed++;
+			if(e.getKeyCode() == 80) {
+				System.out.println("Im in");
+				if(gamePaused) {
+					gamePaused = false;
+					timer.start();
+				} else {
+					gamePaused = true;
+					timer.stop();
+				}
+				
+			} 
+			
+			
 			
 		}
 		
@@ -317,85 +314,5 @@ public class Board extends JPanel{
 			
 		}
 	}
-
-
-	private class MSListener implements MouseListener, ImageObserver {
-		@Override
-		public void mouseClicked(MouseEvent m) {
-		}
-		@Override
-		public void mouseEntered(MouseEvent arg0) {
-		}
-		@Override
-		public void mouseExited(MouseEvent arg0) {
-		}
-	
-		@Override
-		public void mousePressed(MouseEvent m) {
-			int mx = m.getX();
-			int my = m.getY();
-			
-			if(gamestate == Gamestate.MENU) {
-				Button playBtn = menu.getPlayBtn();
-				Button settingsBtn = menu.getSettingsBtn();
-				Button scoreBtn = menu.getScoreBtn();
-				Button quitBtn = menu.getQuitBtn();
-				
-				//play Button pressed
-				if( mx > playBtn.getPosX() && mx < playBtn.getPosX() + playBtn.getWidht() &&
-					my > playBtn.getPosY() && my < playBtn.getPosY() + playBtn.getHeight()
-				) {
-					gamestate = Gamestate.GAME;
-					options.resetScore();
-					timer.start();
-				}
-				//settings Button pressed
-				if( mx > settingsBtn.getPosX() && mx < settingsBtn.getPosX() + settingsBtn.getWidht() &&
-					my > settingsBtn.getPosY() && my < settingsBtn.getPosY() + settingsBtn.getHeight()
-				) {
-					System.out.println("Settings");
-					System.out.println(updateSpeed);
-				}
-				//score Button pressed
-				if( mx > scoreBtn.getPosX() && mx < scoreBtn.getPosX() + scoreBtn.getWidht() &&
-					my > scoreBtn.getPosY() && my < scoreBtn.getPosY() + scoreBtn.getHeight()
-				) {
-					gamestate = Gamestate.HIGHSCORES;
-					repaint();
-				}
-				//quit Button pressed
-				if( mx > quitBtn.getPosX() && mx < quitBtn.getPosX() + quitBtn.getWidht() &&
-					my > quitBtn.getPosY() && my < quitBtn.getPosY() + quitBtn.getHeight()
-				) {
-					highscores.saveScores();
-					System.exit(0);
-				}
-			}
-			
-			if(gamestate == Gamestate.HIGHSCORES) {
-				if( mx > 200 && mx < 400 &&
-					my > 500 && my < 700
-				) {
-					gamestate = Gamestate.MENU;
-					repaint();
-				}
-			}
-		}
-	
-		@Override
-		public void mouseReleased(MouseEvent arg0) {
-		}
-
-		@Override
-		public boolean imageUpdate(Image arg0, int arg1, int arg2, int arg3, int arg4, int arg5) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-	}
-
-	
-	
-	
-	
 }
 

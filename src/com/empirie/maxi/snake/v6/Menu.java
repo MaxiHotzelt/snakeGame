@@ -1,4 +1,4 @@
-package com.empirie.maxi.snake.v4;
+package com.empirie.maxi.snake.v6;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -12,7 +12,7 @@ import javax.imageio.ImageIO;
 
 public class Menu implements ImageObserver {
 	
-	private final int btnWidth = 200;
+	private final int btnWidth = 250;
 	private final int btnHeight = 50;
 	
 	private Image backgroundImage;
@@ -66,9 +66,9 @@ public class Menu implements ImageObserver {
 	}
 
 	
-	public void render(Graphics g, int width, int height) {
+	public void render(Graphics g) {
 		//backgroundimage 
-		g.drawImage(backgroundImage, width/2 - backgroundImage.getWidth(this)/2, 0, this);
+		g.drawImage(backgroundImage, this.width/2 - backgroundImage.getWidth(this)/2, 0, this);
 		//draw buttons
 		playBtn.render(g);
 		settingsBtn.render(g);
@@ -82,14 +82,6 @@ public class Menu implements ImageObserver {
 		// TODO Auto-generated method stub
 		return false;
 	}
-		
-		
-		
-		
-		
-		
-		
-		
 		
 	public class Button implements ImageObserver {
 		private int height;
@@ -131,8 +123,8 @@ public class Menu implements ImageObserver {
 			
 			//button text
 			g.setColor(fontColor);
-			g.setFont(new Font("TimesRoman", Font.BOLD, 25));
-			int stringWidth = g.getFontMetrics(new Font("TimesRoman", Font.BOLD, 25)).stringWidth(this.text);
+			g.setFont(new Font("8BIT WONDER", Font.BOLD, 20));
+			int stringWidth = g.getFontMetrics(new Font("8BIT WONDER", Font.BOLD, 20)).stringWidth(this.text);
 			g.drawString(this.text, this.posX + width/2 - stringWidth/2, this.posY + 35);
 		}
 

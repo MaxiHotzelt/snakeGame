@@ -25,7 +25,7 @@ public class Main extends JFrame  {
 		//Center frame
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] gsd = ge.getScreenDevices();
-		GraphicsConfiguration gc = gsd[2].getDefaultConfiguration();
+		GraphicsConfiguration gc = gsd[0].getDefaultConfiguration();
 		Rectangle rect = gc.getBounds();
 		setLocation((int)rect.getCenterX()-board.getWidth()/2,(int)rect.getCenterY()-board.getHeight()/2);
 		

@@ -1,4 +1,4 @@
-package com.empirie.maxi.snake.v4;
+package com.empirie.maxi.snake.v5Deprecated;
 
 public class Settings {
 	
@@ -7,7 +7,7 @@ public class Settings {
 	private Difficulty difficulty;
 	
 	//default settings
-	private final boolean DEFAULT_IS_BORDER_COLLISION_ACTIVE = false;
+	private final boolean DEFAULT_IS_BORDER_COLLISION_ACTIVE = true;
 	private final Difficulty DEFAULT_DIFFICULTY = Difficulty.MEDIUM; 
 	
 	public Settings() {
